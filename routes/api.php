@@ -13,6 +13,23 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::group(
+    [
+        'middleware' => 'auth:api',
+        'namespace' => 'Api'
+    ],
+
+    function () {
+
+        // read scopes
+        Route::group(['middleware' => 'scope:profiles-read'], function () {
+            Route::get('/user', 'ProfileController@get');
+        });
+
+        // write scopes
+        Route::group(['middleware' => 'scope:profiles-write'], function () {
+            Route::patch('/user', 'ProfileController@patch');
+        });
+
+    }
+);

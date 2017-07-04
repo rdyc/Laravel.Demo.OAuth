@@ -38,12 +38,21 @@ class LoginController extends Controller
     }
 
     /**
+     * Custom login.
+     *
+     * @return void
+     */
+    //public function login(){
+    //    throw new \Exception('dsada');
+    //}
+
+    /**
      * Logs out the user. We revoke access token and refresh token.
      * Also instruct the client to forget the refresh cookie.
      */
-    public function logout()
+    /*public function logout()
     {
-        /*$accessToken = $this->auth->user()->token();
+        $accessToken = $this->auth->user()->token();
 
         $refreshToken = $this->db
             ->table('oauth_refresh_tokens')
@@ -54,7 +63,7 @@ class LoginController extends Controller
 
         $accessToken->revoke();
 
-        $this->cookie->queue($this->cookie->forget(self::REFRESH_TOKEN));*/
-    }
+        $this->cookie->queue($this->cookie->forget(self::REFRESH_TOKEN));
+    }*/
 
 }

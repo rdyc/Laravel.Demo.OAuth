@@ -3,8 +3,11 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -27,7 +30,7 @@ class Handler extends ExceptionHandler
      *
      * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
      *
-     * @param  \Exception  $exception
+     * @param  \Exception $exception
      * @return void
      */
     public function report(Exception $exception)
@@ -38,20 +41,51 @@ class Handler extends ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Exception $exception
      * @return \Illuminate\Http\Response
      */
     public function render($request, Exception $exception)
     {
-        return parent::render($request, $exception);
+        // handle AJAX request
+        if ($request->expectsJson()) {
+
+            // predefined http error code
+            $http_code = Response::HTTP_INTERNAL_SERVER_ERROR;
+
+            if ($exception instanceof HttpException) {
+                $http_code = (int)$exception->getStatusCode();
+            }
+
+            if ($exception instanceof AuthorizationException) {
+                $http_code = Response::HTTP_FORBIDDEN;
+            }
+
+            // get status text by code
+            $status_text = Response::$statusTexts[$http_code];
+
+            // build error contents
+            $error = [
+                'http_code' => $http_code,
+                'status_text' => $status_text,
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile() . ':' . $exception->getLine()
+            ];
+
+            // returned as json
+            return response()->json($error, $http_code);
+        } else {
+
+            // this should be called from web browser
+            return parent::render($request, $exception);
+        }
     }
 
     /**
      * Convert an authentication exception into an unauthenticated response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Illuminate\Auth\AuthenticationException  $exception
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Illuminate\Auth\AuthenticationException $exception
      * @return \Illuminate\Http\Response
      */
     protected function unauthenticated($request, AuthenticationException $exception)

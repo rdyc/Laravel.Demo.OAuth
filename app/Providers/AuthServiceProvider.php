@@ -34,5 +34,10 @@ class AuthServiceProvider extends ServiceProvider
         Passport::refreshTokensExpireIn(Carbon::now()->addDays(30));
 
         Passport::enableImplicitGrant();
+
+        Passport::tokensCan([
+            'profiles-read' => 'Read user profiles',
+            'profiles-write' => 'Modify user profiles',
+        ]);
     }
 }
